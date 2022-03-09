@@ -19,27 +19,27 @@ locals {
 }
 
 resource "random_string" "mq_admin_user" {
-  count   = local.enabled && local.mq_admin_user_enabled && ! local.mq_admin_user_is_set ? 1 : 0
+  count   = local.enabled && local.mq_admin_user_enabled && !local.mq_admin_user_is_set ? 1 : 0
   length  = 8
   special = false
   number  = false
 }
 
 resource "random_password" "mq_admin_password" {
-  count   = local.enabled && local.mq_admin_user_enabled && ! local.mq_admin_password_is_set ? 1 : 0
+  count   = local.enabled && local.mq_admin_user_enabled && !local.mq_admin_password_is_set ? 1 : 0
   length  = 16
   special = false
 }
 
 resource "random_string" "mq_application_user" {
-  count   = local.enabled && ! local.mq_application_user_is_set ? 1 : 0
+  count   = local.enabled && !local.mq_application_user_is_set ? 1 : 0
   length  = 8
   special = false
   number  = false
 }
 
 resource "random_password" "mq_application_password" {
-  count   = local.enabled && ! local.mq_application_password_is_set ? 1 : 0
+  count   = local.enabled && !local.mq_application_password_is_set ? 1 : 0
   length  = 16
   special = false
 }
@@ -116,16 +116,16 @@ resource "aws_mq_broker" "default" {
 
   # NOTE: Omit logs block if both general and audit logs disabled:
   # https://github.com/hashicorp/terraform-provider-aws/issues/18067
-  dynamic "logs" {
-    for_each = {
-      for logs, type in local.mq_logs : logs => type
-      if type.general_log_enabled || type.audit_log_enabled
-    }
-    content {
-      general = logs.value["general_log_enabled"]
-      audit   = logs.value["audit_log_enabled"]
-    }
-  }
+  # dynamic "logs" {
+  #   for_each = {
+  #     for logs, type in local.mq_logs : logs => type
+  #     if type.general_log_enabled || type.audit_log_enabled
+  #   }
+  #   content {
+  #     general = logs.value["general_log_enabled"]
+  #     audit   = logs.value["audit_log_enabled"]
+  #   }
+  # }
 
   maintenance_window_start_time {
     day_of_week = var.maintenance_day_of_week
@@ -146,5 +146,9 @@ resource "aws_mq_broker" "default" {
   user {
     username = local.mq_application_user
     password = local.mq_application_password
+  }
+
+  lifecycle {
+    ignore_changes = [engine_version]
   }
 }
